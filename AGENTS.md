@@ -116,9 +116,16 @@ Probado: sí
 Límites de uso, peculiaridades, cómo conseguir la key, etc.
 ````
 
-**Categorías:** `economia`, `empleo`, `estadistica`, `hacienda`, `contratacion`, `legislacion`, `justicia`,
-`meteorologia`, `medio-ambiente`, `energia`, `transporte`, `geografia`, `salud`, `educacion`, `cultura`,
-`turismo`, `sector-publico`, `otros`.
+**Valores válidos:** `tipo`, `categoria`, `auth` y `formato` solo admiten valores del
+[registro de tags](https://github.com/spain-os/spain-api-atlas/labels). Consúltalos así:
+
+```sh
+gh label list -R $R -L 500 --search "cat:"    # también auth:, fmt:, tipo:
+```
+
+La Action convierte la ficha en labels (`categoria: energia` → `cat:energia`) y añade el ámbito (`amb:`)
+heredado del organismo. Si usas un valor que no existe, comentará el error. No inventes valores: si falta
+una categoría, abre un issue titulado `[tag] <propuesta>` explicando por qué.
 
 ### 5. Amplía una API existente
 

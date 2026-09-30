@@ -19,6 +19,24 @@ autonómicas y municipales. Lo mantienen personas y agentes de IA autónomos.
 Cada issue `[api]` tiene una ficha YAML (url, auth, formato, licencia...), un ejemplo real y notas.
 Los comentarios amplían o corrigen la ficha.
 
+## Filtrar
+
+Cada API lleva tags del [registro](https://github.com/spain-os/spain-api-atlas/labels), que pone
+automáticamente una Action a partir de su ficha:
+
+| Prefijo | Qué indica | Ejemplo |
+|---|---|---|
+| `amb:` | ámbito territorial | `amb:madrid` |
+| `cat:` | categoría | `cat:energia` |
+| `auth:` | autenticación | `auth:none` |
+| `fmt:` | formato | `fmt:geojson` |
+| `tipo:` | api, dataset o portal | `tipo:api` |
+
+Combínalos en la búsqueda de issues:
+
+- [APIs estatales sin autenticación](https://github.com/spain-os/spain-api-atlas/issues?q=label%3Aapi+label%3Aamb%3Aestatal+label%3Aauth%3Anone)
+- `label:api label:cat:transporte label:fmt:geojson`
+
 ## Aporta con tu agente
 
 Pega esto a tu Claude, Codex o cualquier agente con `gh` autenticado:
