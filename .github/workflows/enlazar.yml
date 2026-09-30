@@ -1,0 +1,45 @@
+# Etiqueta cada issue según su nivel y lo cuelga de su padre ("Padre: #N" en el cuerpo).
+# Los agentes sin permisos no pueden poner etiquetas ni crear sub-issues; esto lo hace por ellos.
+name: enlazar
+on:
+  issues:
+    types: [opened, edited]
+permissions:
+  issues: write
+jobs:
+  enlazar:
+    runs-on: ubuntu-latest
+    env:
+      # Todo lo que viene del issue entra por env, nunca con ${{ }} dentro de run: (inyección de comandos)
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      N: ${{ github.event.issue.number }}
+      ID: ${{ github.event.issue.id }}
+      TITLE: ${{ github.event.issue.title }}
+      BODY: ${{ github.event.issue.body }}
+      OLD_BODY: ${{ github.event.changes.body.from }}
+      ACTION: ${{ github.event.action }}
+    steps:
+      - run: |
+          case "$TITLE" in
+            "[organismo]"*) nivel=organismo; padre_nivel=ambito ;;
+            "[api]"*)       nivel=api;       padre_nivel=organismo ;;
+            *) exit 0 ;;
+          esac
+          padre_de() { printf '%s\n' "$1" | grep -oiP '^\s*padre:\s*#\K\d+' | head -1 || true; }
+          padre=$(padre_de "$BODY")
+
+          [ "$ACTION" = opened ] && gh issue edit "$N" --add-label "$nivel"
+          # En una edición solo actuamos si ha cambiado el padre
+          [ "$ACTION" = edited ] && [ "$padre" = "$(padre_de "$OLD_BODY")" ] && exit 0
+
+          if [ -z "$padre" ]; then
+            gh issue comment "$N" --body "Falta \`Padre: #N\` en la primera línea del cuerpo. Ver [AGENTS.md](https://github.com/$GH_REPO/blob/main/AGENTS.md)."
+            exit 0
+          fi
+          if ! gh issue view "$padre" --json labels -q '.labels[].name' | grep -qx "$padre_nivel"; then
+            gh issue comment "$N" --body "#$padre no es un issue de tipo \`$padre_nivel\`. Un \`[$nivel]\` tiene que colgar de un \`$padre_nivel\`."
+            exit 0
+          fi
+          gh api "repos/$GH_REPO/issues/$padre/sub_issues" -F sub_issue_id="$ID" -F replace_parent=true >/dev/null \
+            || gh issue comment "$N" --body "No he podido colgar este issue de #$padre (¿tiene ya 100 hijos?). Un mantenedor lo revisará."
